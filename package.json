@@ -1,8 +1,8 @@
 {
-  "name": "grm-cli",
-  "version": "1.0.0",
-  "description": "Interface de Linha de Comando",
-  "main": "./lib/index.js",
+	"name": "grm-cli",
+	"version": "1.0.3",
+	"description": "Interface de Linha de Comando",
+	"main": "./lib/index.js",
 	"bin": {
 		"grm": "bin/grm.js"
 	},
@@ -16,14 +16,14 @@
 		"mkdirp": "^0.5.1",
 		"require-text": "0.0.1"
 	},
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/geilsonrm/grm-cli.git"
-  },
-  "bugs": {
-    "url": "https://github.com/geilsonrm/grm-cli/issues"
-  },
-  "homepage": "https://github.com/geilsonrm/grm-cli#readme",
-  "author": "Geilson Ribeiro Mirandoa <geilsonrm@hotmail.com>",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/geilsonrm/grm-cli.git"
+	},
+	"bugs": {
+		"url": "https://github.com/geilsonrm/grm-cli/issues"
+	},
+	"homepage": "https://github.com/geilsonrm/grm-cli#readme",
+	"author": "Geilson Ribeiro Mirandoa <geilsonrm@hotmail.com>",
 	"license": "ISC"
 }

@@ -37,7 +37,7 @@ class Grm {
             path: `api/grm.api-${libFile}.js`,
             action: {
                 increment: {
-                    replace1a: '. ¹', replace1b: `. ¹\n${concatRequire}`,
+                    replace1a: `\nmodule.exports = [`, replace1b: `${concatRequire}\n\nmodule.exports = [`,
                     replace2a: 'exports = [', replace2b: `exports = [\n  ${nameCamelCase},`
                 },
                 comment: {
@@ -50,7 +50,7 @@ class Grm {
                 },
                 remove: {
                     replace1a: `${concatRequire}\n`, replace1b: ``,
-                    replace2a: `${nameCamelCase},\n`, replace2b: ``
+                    replace2a: `${nameCamelCase},\n  `, replace2b: ``
                 },
             }
         }
@@ -88,7 +88,7 @@ class Grm {
         this.nameFiles.forEach(name => {
             this.apiFiles.forEach(apiFile => {
                 let api = this.stringToReplace(name, apiFile)
-                console.log(option)
+                // console.log(option)
                 this.fileReplace(
                     api.path,
                     [

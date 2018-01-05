@@ -29,4 +29,4 @@ schema.set('toJSON', {
   transform: function (doc, ret) {   delete ret._id  }
 });
 
-module.exports = restful.model('exemplo', schema)
+module.exports = restful.model('n1', schema)

@@ -1,6 +1,6 @@
 
-//const extend = require('./exemplo.extend')
-const Schema = require('./exemplo.schema')
+//const extend = require('./n1.extend')
+const Schema = require('./n1.schema')
 
 
 module.exports = {
@@ -8,6 +8,6 @@ module.exports = {
     methods: ['get', 'post', 'put', 'delete'],
     methodsAuth: ['get', 'post', 'put', 'delete'],
     //extends: [ extend.resumo, extend.teste, extend.stopAgenda ],
-    route: '/exemplo',
+    route: '/n1',
     erros: []
 }

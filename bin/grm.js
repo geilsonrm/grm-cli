@@ -5,35 +5,42 @@ const Grm = require('./grm.class')
 
 require('./grm.functions')()
 
-// Usage: pizza [options]
-
 program
-// .version('0.1.12')
-.description('** Auxilia na utilização da API GRM Express **')
-.option('a, api', 'Cria nova API completa (todos os arquivos).')
-.option('s, schema', 'Cria um novo arquivo dentro da API.')
-.option('v, service', 'Cria um novo arquivo dentro da API.')
-.option('e, extend', 'Cria um novo arquivo dentro da API.')
-.option('f, functions', 'Cria um novo arquivo dentro da API.')
-.option('h, scheduler', 'Cria um novo arquivo dentro da API.')
-.option('d, data', 'Cria um novo arquivo dentro da API.')
-.option('n, new', 'Cria novo projeto.')
+.version('1.0.3')
+.description('** Comandos para auxilia na utilização das aplicações GRM **')
+// .option('a, api', 'Cria nova API.')
 
 program.on('--help', function(){
     console.log(
     `
+    Usage: grm [options] [names] [args]
+
     Examples:
     
-     $custom-help --help
-     $custom-help --help
-    `
+     $ grm api financeiro               Cria uma api com todos os arquivos possíveis.
+     $ grm api financeiro --basic       Cria uma api com apenas os arquivos básicos.
+     $ grm api financeiro --comment     Coloca a api como comentário no código.
+     $ grm api financeiro --uncomment   Remove a api do comentário.
+     $ grm api financeiro --remove      Remove a api do código.
+     
+     $ grm api financeiro --service     Cria arquivo service.
+     $ grm api financeiro --schema      Cria arquivo schema.
+     $ grm api financeiro --extend      Cria arquivo extend.
+     $ grm api financeiro --scheduler   Cria arquivo scheduler.
+     $ grm api financeiro --functions   Cria arquivo functions.
+     $ grm api financeiro --data        Cria arquivo data.
+
+     $ grm api financeiro,estoque       Cria duas ou mais api no mesmo comando.
+
+     OBS: 
+     Comentar ou remover uma api sempre será apenas dentro do código nos arquivos:
+     grm.api-data.js, grm.api.scheduler.js e grm.api-service.js.
+     Por segurança, para excluir os arquivos da api o usuário deverá deletar manualmente.
+     `
     )
 })
 
 program.parse(process.argv)
-
-// const commando = process.argv[2]
-// const cpFile = require('cp-file')
 
 // evita erro quando argv[4] (options) for nulo
 process.argv[4] = process.argv[4] ? process.argv[4] : ""
