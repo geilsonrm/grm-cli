@@ -1,6 +1,6 @@
 {
 	"name": "grm-cli",
-	"version": "1.0.3",
+	"version": "1.0.5",
 	"description": "Interface de Linha de Comando",
 	"main": "./lib/index.js",
 	"bin": {

@@ -6,7 +6,7 @@ const Grm = require('./grm.class')
 require('./grm.functions')()
 
 program
-.version('1.0.3')
+.version('1.0.5')
 .description('** Comandos para auxilia na utilização das aplicações GRM **')
 // .option('a, api', 'Cria nova API.')
 

@@ -15,7 +15,7 @@ class Grm {
         this.libFile = '',
         this.options = p.options,
             this.destination = '',
-            this.libFiles = ['schema', 'service', 'extend', 'scheduler', 'functions', 'data'],
+            this.libFiles = ['schema', 'service', 'service.extend', 'scheduler', 'functions', 'data'],
             this.apiFiles = ['service', 'scheduler', 'data']
     }
 
