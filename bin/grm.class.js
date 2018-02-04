@@ -1,196 +1,196 @@
 
-const requireText = require('require-text')
+const explorer = require('./grm.explorer')
+const trash = require('trash');
+var fs = require('fs');
+const data = new Date()
 
-const fs = require('fs');
-var mkdirp = require('mkdirp');
-const cpFile = require('cp-file')
+const nameLibs = ['data', 'scheduler', 'service', 'service.extend']
+const nameLibs2 = ['mongoose', 'sequelize']
+const nameFolders = []
 
-// fs.defaultEncoding = 'utf-8'
-
-class Grm {
+class Api {
 
     constructor(p) {
-        this.cmds = p.cmd
-        this.nameFiles = p.nameFiles
-        this.libFile = '',
-        this.options = p.options,
-            this.destination = '',
-            this.libFiles = ['schema', 'service', 'service.extend', 'scheduler', 'functions', 'data'],
-            this.apiFiles = ['service', 'scheduler', 'data']
+        this.nameFolders = p.names
+        this.option = p.options
+        this.line = 0
     }
 
-    info() {
-        console.log(`
-        command: ${this.cmds}
-        nameFiles: ${this.nameFiles}
-        options: ${this.options}
-        typeFiles: ${this.typeFiles}
-        `)
+    copy() {
+        // se for utilizado em outro ambiente buscar arquivos dentro de node_modules
+        const path = fs.existsSync('lib') ? `lib/` : `node_modules/grm-cli/lib/`
+
+        this.nameFolders.forEach(nameFolder => {
+
+            // copia pastas com arquivos da biblioteca
+            explorer.copyDir(`${path}/exemplo`, `api/${nameFolder}`)
+            explorer.copyDir(`${path}/exemplo.schema`, `api/${nameFolder}/${nameFolder}.schema`)
+            var self = this;
+
+            // renomeia arquivos da pasta copiada acima
+            nameLibs.forEach(nameLib => {
+                let oldName = `api/${nameFolder}/exemplo.${nameLib}.js`
+                let newName = `api/${nameFolder}/${nameFolder}.${nameLib}.js`
+
+                fs.rename(oldName, newName, function (err) {
+                    if (err) console.log(err)
+                    self.replace(newName, nameFolder)
+                })
+            })
+
+            // renomeia arquivos da subpasta acima
+            nameLibs2.forEach(nameLib => {
+                let oldName = `api/${nameFolder}/${nameFolder}.schema/exemplo.${nameLib}.js`
+                let newName = `api/${nameFolder}/${nameFolder}.schema/${nameFolder}.${nameLib}.js`
+
+                fs.rename(oldName, newName, function (err) {
+                    if (err) console.log(err)
+                    self.replace(`api/${nameFolder}/${nameFolder}.schema/index.js`, nameFolder)
+                })
+            })
+
+        })
+
+        this.increment()
     }
 
-    stringToReplace(name, libFile) {
-        const nameCamelCase = name.concat(libFile.capitalize())
-        const pathFile = `./${name}/${name}.${libFile}`
-        const concatRequire = `const ${nameCamelCase} = require('${pathFile}')`
-        return {
-
-            path: `api/grm.api-${libFile}.js`,
-            action: {
-                increment: {
-                    replace1a: `\nmodule.exports = [`, replace1b: `${concatRequire}\n\nmodule.exports = [`,
-                    replace2a: 'exports = [', replace2b: `exports = [\n  ${nameCamelCase},`
-                },
-                comment: {
-                    replace1a: concatRequire, replace1b: `// ${concatRequire}`,
-                    replace2a: `${nameCamelCase},`, replace2b: `// ${nameCamelCase},`
-                },
-                uncomment: {
-                    replace1a: `// ${concatRequire}`, replace1b: concatRequire,
-                    replace2a: `// ${nameCamelCase},`, replace2b: `${nameCamelCase},`
-                },
-                remove: {
-                    replace1a: `${concatRequire}\n`, replace1b: ``,
-                    replace2a: `${nameCamelCase},\n  `, replace2b: ``
-                },
-            }
-        }
-
-    }
-
-    // concatDestination(name, file,t) {
-    //     this.destination = `api/${name}/${name}.${file}.js`
-    //     console.log(t, name, file)
-    // }
-
-    isApi(cmd) {
-        return ['a', 'api'].find(item => cmd == item)
-    }
-
-    isOption(option) {
-        return this.options.find(item => `--${option}` == item)
-    }
-
-    isFile() {
-        let inner = [
-            '--schema', '--service', '--extend', '--scheduler', '--functions', '--data'
-        ].innerJoin(this.options)
-        return inner.length
-    }
-
-    setLibFiles() {
-        let inner = [
-            '--schema', '--service', '--extend', '--scheduler', '--functions', '--data'
-        ].innerJoin(this.options)
-        this.libFiles = inner.replaceString('--','')
-    }
-
-    option(option) {
-        this.nameFiles.forEach(name => {
-            this.apiFiles.forEach(apiFile => {
-                let api = this.stringToReplace(name, apiFile)
-                // console.log(option)
-                this.fileReplace(
-                    api.path,
-                    [
-                        [api.action[option].replace1a, api.action[option].replace1b],
-                        [api.action[option].replace2a, api.action[option].replace2b]
-                    ]
-                )
+    remove() {
+        this.nameFolders.forEach(nameFolder => {
+            trash(`api/${nameFolder}`).then(() => {
+                this.decrement()
+                console.log(`A API "${nameFolder}" foi enviada para a lixeira.`)
             })
         })
     }
 
-    getFileAndReplace(libFile, nameFile) {
-        this.libFile = requireText(`../lib/exemplo.${libFile}`, require)
-        return this.libFile.replaceAll('exemplo', nameFile)
-    }
 
-    createApi() {
-        if (this.isOption('basic')) this.libFiles.splice(2, 7)
-        if (this.isFile()) this.setLibFiles()
-        this.nameFiles.forEach(nameFile => {
-            const self = this
-            
-            mkdirp(`api/${nameFile}`, function (err) {
-                if (err) { console.error(err) 
-                } else {
-                    self.libFiles.forEach(libFile => {
-                        let newFile = self.getFileAndReplace(libFile, nameFile)
-                        let destination = `api/${nameFile}/${nameFile}.${libFile}.js`
+    /**
+     * Este método lê o arquivo
+     * Localiza a string informada
+     * E incremeta nova string
+     * Caso seja passo um número a ser localizado
+     * O incremeto será na linha referente ao número
+     * O 3º parâmetro opcional determina quebra de linha 
+     */
+    increment() {
+        let file = `api/grm.api-service.js`
+        var self = this
 
-                        fs.writeFile(destination, newFile, function (err) {
-                            if (err) return console.log(err);                            
-                            self.incrementRequire(nameFile, libFile)
-                            console.log(`     |- ${nameFile}.${libFile}.js`);
-                        })
-                    })
+        fs.readFile(file, "utf-8", function (err, data) {
+            if (err) console.log('Erro ao ler arquivo:', err)
+            var newData = data
+            var add2 = ""
+            self.nameFolders.forEach(nameFolder => {
+                let find = 'module.exports = ['
+                let add1 = `const ${nameFolder}Service = require('./${nameFolder}/${nameFolder}.service')`
+                add2 = `  ${nameFolder}Service,`
+
+                if( !data.exist(add2) ) {
+                    newData = newData.findAndAdd(0, add1)
+                    newData = newData.findAndAdd(find, add2)
+                    c.warn(`A api "${nameFolder}" foi criada.`)
                 }
-            });
-
-            console.log(`API "${nameFile}" created`)
+            })
+            if(!(data == newData)) fs.writeFile(file, newData)
         })
-
-
     }
 
-    incrementRequire(nameFile, libFile) {
-        if (['service', 'data', 'scheduler'].find(item => item == libFile)) {
-            let api = this.stringToReplace(nameFile, libFile)
-            this.fileReplace(
-                api.path,
-                [
-                    [api.action.increment.replace1a, api.action.increment.replace1b],
-                    [api.action.increment.replace2a, api.action.increment.replace2b]
-                ]
-            )
-        }
+
+    decrement() {
+        let file = `api/grm.api-service.js`
+        var self = this
+
+        fs.readFile(file, "utf-8", function (err, data) {
+            if (err) console.log('Erro ao ler arquivo:', err)
+            var newData = data
+            self.nameFolders.forEach(nameFolder => {
+                let find1 = `${nameFolder}Service,`
+                let find2 = `const ${nameFolder}Service = require('./${nameFolder}/${nameFolder}.service')`
+                
+                newData = newData.findAndRemove(find1)
+                newData = newData.findAndRemove(find2)
+                c.warn(`A api "${nameFolder}" foi removida.`)
+            })
+            fs.writeFile(file, newData)
+        })
     }
 
-    fileReplace(destination, replaces) {
-        let readFile = function (file, callback) {
-            fs.readFile(file, "utf-8", function (err, data) {
-                if (err) console.log('Erro ao ler arquivo:', err);
-                callback(data)
-            });
-        }
+    comment() {
+        let file = `api/grm.api-service.js`
+        var self = this
 
-        let callback = function (data) {
-            replaces.forEach(replace => {
-                data = data.replaceAll(replace[0], replace[1])
-            })
-            fs.writeFile(destination, data, function (err) {
-                if (err) throw err;
-                // code success...
-            })
-        }
+        fs.readFile(file, "utf-8", function (err, data) {
+            if (err) console.log('Erro ao ler arquivo:', err)
+            var newData = data
 
-        readFile(destination, callback)
+            self.nameFolders.forEach(nameFolder => {
+                let find1 = `${nameFolder}Service,`
+                let find2 = `const ${nameFolder}Service = require('./${nameFolder}/${nameFolder}.service')`
+                
+                newData = newData.replace(find1, `// ${find1}`)
+                newData = newData.replace(find2, `// ${find2}`)
+                c.warn(`A api "${nameFolder}" foi comentada.`)
+            })
+            fs.writeFile(file, newData)
+        })
+    }
+    
+    uncomment() {
+        let file = `api/grm.api-service.js`
+        var self = this
+
+        fs.readFile(file, "utf-8", function (err, data) {
+            if (err) console.log('Erro ao ler arquivo:', err)
+            var newData = data
+
+            self.nameFolders.forEach(nameFolder => {
+                let find1 = `${nameFolder}Service,`
+                let find2 = `const ${nameFolder}Service = require('./${nameFolder}/${nameFolder}.service')`
+                
+                newData = newData.replace(`// ${find1}`, find1)
+                newData = newData.replace(`// ${find2}`, find2)
+                c.warn(`A api "${nameFolder}" foi descomentada.`)
+            })
+            fs.writeFile(file, newData)
+        })
+    }
+
+    
+    replace(file, nameLib) {
+        let find = 'module.exports = ['
+        let add1 = `const ${nameLib}Service = require('./${nameLib}/${nameLib}.service')`
+        let add2 = `  ${nameLib}Service,`
+
+        fs.readFile(file, "utf-8", function (err, data) {
+            if (err) console.log('Erro ao ler arquivo:', err)
+            var newData = data.replaceAll('exemplo', nameLib)
+            // console.log(newData)
+            fs.writeFile(file, newData)
+        })
     }
 
 
     init() {
-        this.cmds.forEach(cmd => {
+        if (this.option.length == 0) {
+            this.copy()
+        } else {
+            switch (this.option) {
+                case '--remove': this.remove()
+                    break
+                case '--comment': this.comment()
+                    break
+                case '--uncomment': this.uncomment()
+                    break
 
-            if (this.isOption('comment')) {
-                this.option('comment')
-                return
+                default:
+                    console.log(`ERROR: A frag "${this.option}" é desconhecida.`)
             }
-
-            if (this.isOption('uncomment')) {
-                this.option('uncomment')
-                return
-            }
-
-            if (this.isOption('remove')) {
-                this.option('remove')
-                return
-            }
-
-            if (this.isApi(cmd)) this.createApi()
-
-        })
+        }
     }
+
 
 }
 
-module.exports = Grm
+
+
+module.exports = Api
